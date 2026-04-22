@@ -140,13 +140,13 @@ A focused performance pass on the warehouse side. Each row below lists one concr
 
 ### SQL / data model changes
 
-| # | Change | Before → After |
-|---|---|---|
-| 6 | Range-partitioned fact tables by month on `*_date_sk` (monthly partitions + default) | Full-table scan on date filters → partition pruning (`O(months_touched)`); retention drop goes from `DELETE + VACUUM` to `O(1) DROP TABLE` |
-| 7 | SCD2 range join in **initial** fact loads (was `is_current=TRUE`; now uses both range and `is_current`) | Initial and incremental now share one semantics; historically correct `baby_sk` on backfills, and the join uses index #2 |
-| 8 | Incremental watermark moved into `metadata.etl_job.last_loaded_event_ts_watermark` | `SELECT MAX(col) FROM staging.*` (`O(n)` over growing staging) → single-row lookup via index #4 (`O(1)`) |
-| 9 | Staging incremental SQL parameterized with `:watermark_ts` | No `MAX()` CTE over staging; handles first run naturally (`:watermark_ts IS NULL`) |
-| 10 | Staging chunk insert switched to executemany | One inlined `INSERT … VALUES (…,…,…)` per chunk (risked the 65535 bind-param cap, heavy plan cache) → batched parameterized executemany |
+Change | Before → After |
+|---|---|
+| Range-partitioned fact tables by month on `*_date_sk` (monthly partitions + default) | Full-table scan on date filters → partition pruning (`O(months_touched)`); retention drop goes from `DELETE + VACUUM` to `O(1) DROP TABLE` |
+| SCD2 range join in **initial** fact loads (was `is_current=TRUE`; now uses both range and `is_current`) | Initial and incremental now share one semantics; historically correct `baby_sk` on backfills, and the join uses index #2 |
+| Incremental watermark moved into `metadata.etl_job.last_loaded_event_ts_watermark` | `SELECT MAX(col) FROM staging.*` (`O(n)` over growing staging) → single-row lookup via index #4 (`O(1)`) |
+| Staging incremental SQL parameterized with `:watermark_ts` | No `MAX()` CTE over staging; handles first run naturally (`:watermark_ts IS NULL`) |
+| Staging chunk insert switched to executemany | One inlined `INSERT … VALUES (…,…,…)` per chunk (risked the 65535 bind-param cap, heavy plan cache) → batched parameterized executemany |
 
 ---
 
