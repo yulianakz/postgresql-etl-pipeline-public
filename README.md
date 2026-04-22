@@ -207,4 +207,6 @@ docker compose up --build
 The first time the Flask container boots it auto-imports a demo baby ("Adriana") from the bundled CSV files, so the DAGs have something to extract.
 
 ---
+## License & Usage
 
+This project is for portfolio and demonstration purposes only. All rights reserved. No permission is granted to use, modify, or redistribute this software for any purpose. It is provided "as is" without warranty of any kind.
