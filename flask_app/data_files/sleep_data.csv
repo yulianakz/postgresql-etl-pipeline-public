@@ -1,0 +1,14 @@
+﻿Baby,Time,Duration(minutes),Note
+Adriana,"03.03.2026, 21:30",95,good_1
+Adriana,"06.03.2026, 14:10",42,good_2
+Adriana,"10.03.2026, 09:05",120,good_3
+Adriana,"15.03.2026, 12:40",60,good_4
+Adriana,"22.03.2026, 19:15",75,good_5
+Adriana,"25.03.2026, 08:30",0,bad_duration_zero
+Adriana,"26.03.2026, 07:20",-15,bad_duration_negative
+Adriana,"27.03.2026, 10:00",abc,bad_duration_not_int
+Adriana,"28.03.2026, 11:00",,bad_duration_null
+Adriana,,"45",bad_time_null
+Adriana,"31.03.2099, 09:00",30,bad_future_time
+Adriana,"2026-03-18 10:00",30,bad_time_format_iso
+Adriana,"20.03.2026, 10:00",30,

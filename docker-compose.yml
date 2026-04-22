@@ -1,0 +1,139 @@
+services:
+
+  db:
+    image: postgres:15
+    container_name: baby_data_postgres
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - baby_data_db:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER -d baby_data_db" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  web-init:
+    build:
+      context: .
+      dockerfile: flask_app/Dockerfile
+    image: flask_app
+    env_file:
+      - .env
+    volumes:
+      - ./flask_app:/app/flask_app
+    depends_on:
+      db:
+        condition: service_healthy
+    command: python -m flask_app.seed
+
+  web:
+    build:
+      context: .
+      dockerfile: flask_app/Dockerfile
+    image: flask_app
+    container_name: baby_data_flask
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./flask_app:/app/flask_app
+    depends_on:
+      web-init:
+        condition: service_completed_successfully
+    command: gunicorn -w 2 -b 0.0.0.0:5000 "flask_app.app:create_app()"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:5000/health\")'"]
+      interval: 1m
+      retries: 5
+      timeout: 3s
+      start_period: 120s
+
+  airflow-db:
+    image: postgres:15
+    container_name: airflow_postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: airflow_db
+    volumes:
+      - airflow_db:/var/lib/postgresql/data
+    depends_on:
+      web:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER -d airflow_db" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  airflow-init:
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
+    image: airflow_app
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@airflow-db:5432/airflow_db
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./etl:/opt/airflow/etl
+    depends_on:
+      airflow-db:
+        condition: service_healthy
+    command: >
+      bash -c "
+      cd /opt/airflow/etl &&
+      alembic -c alembic.ini upgrade head &&
+      cd /opt/airflow &&
+      airflow db migrate &&
+      airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com || true &&
+      airflow pools set postgres_pool 3 'Limit Postgres writes' &&
+      airflow connections delete postgres_baby_data 2>/dev/null || true &&
+      airflow connections add postgres_baby_data --conn-type postgres --conn-host db --conn-schema baby_data_db --conn-login ${POSTGRES_USER} --conn-password ${POSTGRES_PASSWORD} --conn-port 5432 &&
+      airflow connections delete baby_api 2>/dev/null || true &&
+      airflow connections add baby_api --conn-type http --conn-host web --conn-login ${BOOTSTRAP_ADMIN_USERNAME} --conn-password ${BOOTSTRAP_ADMIN_PASSWORD} --conn-port 5000 --conn-schema http
+      "
+
+  airflow-webserver:
+    image: airflow_app
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@airflow-db:5432/airflow_db
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    command: webserver
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./etl:/opt/airflow/etl
+      - ./airflow/logs:/opt/airflow/logs
+    ports:
+      - "8080:8080"
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    image: airflow_app
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@airflow-db:5432/airflow_db
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./etl:/opt/airflow/etl
+      - ./airflow/logs:/opt/airflow/logs
+    command: scheduler
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  baby_data_db:
+  airflow_db:

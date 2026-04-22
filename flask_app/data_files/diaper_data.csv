@@ -1,0 +1,14 @@
+Baby,Time,Status,Note
+Adriana,"03.03.2026, 07:20",Wet,good_1
+Adriana,"07.03.2026, 12:45",Dirty,good_2
+Adriana,"12.03.2026, 18:05",Mixed,good_3
+Adriana,"18.03.2026, 10:30",wet,good_4_lowercase
+Adriana,"24.03.2026, 21:10",DIRTY,good_5_uppercase
+Adriana,"25.03.2026, 08:30",,bad_status_null
+Adriana,"26.03.2026, 09:00",123,bad_status_int_instead_of_string
+Adriana,"27.03.2026, 10:00",poop,bad_status_invalid_value
+Adriana,,"Wet",bad_time_null
+Adriana,"31.03.2099, 10:00",Wet,bad_future_time
+Adriana,"2026-03-18 10:00",Wet,bad_time_format_iso
+Adriana,"32.03.2026, 11:00",Wet,bad_time_invalid_day
+Adriana,"29.03.2026, 13:45",Mixed,

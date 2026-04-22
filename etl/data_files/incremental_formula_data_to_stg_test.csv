@@ -1,0 +1,13 @@
+ID,Baby ID,Time,Amount (ml),Note
+52001,1,"18.03.2026, 07:20",125,"GOOD old row (< watermark simulation)"
+52002,1,"2026-04-22 08:45",140,"GOOD newer row (ISO-like datetime format)"
+52003,1,"22.04.2026, 14:10",95,"GOOD newer row"
+52004,1,"23.04.2026, 05:35",160,"GOOD newer row"
+52005,1,"23.04.2026, 18:50",110,"GOOD newer row"
+62001,1,,"120","BAD: Time is NULL -> feed_time becomes NULL"
+62002,1,"24.04.2026, 09:00",,"BAD: Amount is NULL -> amount_ml becomes NULL"
+62003,,"24.04.2026, 10:15",100,"BAD: Baby ID is NULL -> defaults to baby_id=1 in FormulaDataEntity"
+,1,"24.04.2026, 11:20",115,"BAD: ID is NULL -> source_id auto-generated in FormulaDataEntity"
+62004,1,2026-04-24 12:00,130,"BAD: wrong datetime format -> feed_time becomes NULL"
+62005,1,"24.04.2026, 13:40",abc,"BAD: amount is not numeric -> amount_ml becomes NULL"
+62006,1,"31.02.2026, 08:00",120,"BAD: impossible date -> feed_time becomes NULL"
