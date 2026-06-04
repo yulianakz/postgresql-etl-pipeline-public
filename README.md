@@ -23,7 +23,8 @@
 - [6. Running it locally](#6-running-it-locally)
   - [6.1 OLTP seed on startup (one-time)](#61-oltp-seed-on-startup-one-time)
 - [7. Project structure](#7-project-structure)
-  - [7.1 Tests](#71-tests)
+  - [7.1 Tests](#71-tests)'
+- [License & Usage](#license-&-usage)
 
 ---
 
